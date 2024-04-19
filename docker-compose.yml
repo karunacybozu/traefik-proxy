@@ -1,5 +1,5 @@
+---
 version: "3.8"
-
 services:
   authelia:
     container_name: authelia
@@ -7,16 +7,12 @@ services:
       - postgres
       - redis
     env_file:
-      - .env
+      - ".env"
     environment:
       AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: /run/secrets/jwt
-      # yamllint disable-line rule:line-length
-      # CHANGEME: Uncomment the following line if using notifier.smtp in authelia/configuration.yml
-      # AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE: /run/secrets/smtp
       AUTHELIA_SESSION_SECRET_FILE: /run/secrets/session
       AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/storage-encryption-key
-      # CHANGEME: Your timezone
       TZ: America/New_York
     secrets:
       - jwt
@@ -24,85 +20,77 @@ services:
       - session
       - smtp
       - storage-encryption-key
-    image: authelia/authelia:4.38.8
+    image: "authelia/authelia:4.38.8"
     networks:
       - authelia
       - traefik
     restart: always
     volumes:
-      - ./authelia:/config:ro
-      - ./authelia/secrets:/etc/secrets
-
+      - "./authelia:/config:ro"
+      - "./authelia/secrets:/etc/secrets"
   docker-socket-proxy:
     container_name: docker-socket-proxy
     environment:
       CONTAINERS: 1
-    image: tecnativa/docker-socket-proxy:0.1.2
+    image: "tecnativa/docker-socket-proxy:0.1.2"
     networks:
       - docker-socket-proxy
     restart: always
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
+      - "/var/run/docker.sock:/var/run/docker.sock"
   handle-errors:
     build:
-      context: ./handle-errors
+      context: "./handle-errors"
     networks:
       - traefik
     restart: always
-
   postgres:
     container_name: authelia-postgres
     env_file:
-      - .env
+      - ".env"
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
     secrets:
       - postgres-password
-    image: postgres:16.2-alpine
+    image: "postgres:16.2-alpine"
     networks:
       - authelia
     restart: always
     volumes:
-      - authelia-postgres-data:/var/lib/postgresql/data
-
+      - "authelia-postgres-data:/var/lib/postgresql/data"
   redis:
     container_name: authelia-redis
-    image: redis:7.2.4-alpine
+    image: "redis:7.2.4-alpine"
     restart: always
     networks:
       - authelia
-
   traefik:
     depends_on:
       - authelia
       - docker-socket-proxy
       - handle-errors
     env_file:
-      - .env
-    image: traefik:v3.0.0-rc3
+      - ".env"
+    image: "traefik:v3.0.0-rc3"
     networks:
       - docker-socket-proxy
       - traefik
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
+      - "443:443"
     restart: always
     volumes:
-      - ./acme:/etc/acme
-      - ./dynamic-conf:/etc/traefik/dynamic-conf:ro
-      - ./traefik.yml:/etc/traefik/traefik.yml:ro
-
+      - "./acme:/etc/acme"
+      - "./dynamic-conf:/etc/traefik/dynamic-conf:ro"
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro"
   whoami:
-    image: traefik/whoami:v1.10
+    image: "traefik/whoami:v1.10"
     networks:
       - traefik
-
   secure-whoami:
-    image: traefik/whoami:v1.10
+    image: "traefik/whoami:v1.10"
     networks:
       - traefik
-
 secrets:
   jwt:
     file: authelia/secrets/jwt
@@ -114,12 +102,10 @@ secrets:
     file: authelia/secrets/smtp
   storage-encryption-key:
     file: authelia/secrets/storage-encryption-key
-
 networks:
-  authelia:
-  docker-socket-proxy:
+  authelia: ~
+  docker-socket-proxy: ~
   traefik:
     external: true
-
 volumes:
-  authelia-postgres-data:
+  authelia-postgres-data: ~
